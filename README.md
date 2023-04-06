@@ -94,21 +94,23 @@ This results in something like:
 
 Alternatively you can generate the output using a different time schedule (e.g. every 2 seconds) to a [dummy HTTP server](https://docs.webhook.site/) (including debugging to the console):
 ```bash
-node ./dist/index.js --templateFile ./data/other.template.json --mappingFile ./data/other.mapping.json --cron '*/2 * * * * *' --targetUrl https://webhook.site/28dba053-5bc2-4934-9cd8-0541012470a5
+node ./dist/index.js --templateFile ./data/other.template.json --mappingFile ./data/other.mapping.json --cron '*/2 * * * * *' --targetUrl https://webhook.site/ce3065f5-2f0b-49d8-8856-330ae3c6e737
 ```
 This results in:
 ```
-data template:  { "id": "my-id", "type": "Something", "modifiedAt": "2022-09-09T09:10:00.000Z" }
-Mapping:  {
-  '$.id': '${@}-${nextCounter}',
-  '$.modifiedAt': '${currentTimestamp}'
+Arguments:  {
+  _: [],
+  templateFile: './data/other.template.json',
+  mappingFile: './data/other.mapping.json',
+  cron: '*/2 * * * * *',
+  targetUrl: 'https://webhook.site/ce3065f5-2f0b-49d8-8856-330ae3c6e737'
 }
 Runs at:  */2 * * * * *
-Sending:  {"id":"my-id-1","type":"Something","modifiedAt":"2022-09-12T13:23:58.017Z"}
-Next run at:  2022-09-12T15:24:00.000+02:00
-Sending:  {"id":"my-id-2","type":"Something","modifiedAt":"2022-09-12T13:24:00.004Z"}
-Next run at:  2022-09-12T15:24:02.000+02:00
-Sending:  {"id":"my-id-3","type":"Something","modifiedAt":"2022-09-12T13:24:02.003Z"}
-Next run at:  2022-09-12T15:24:04.000+02:00
+Sending to 'https://webhook.site/ce3065f5-2f0b-49d8-8856-330ae3c6e737': {"id":"my-id-1","type":"Something","modifiedAt":"2023-04-06T08:34:56.005Z"}
+Response: OK
+Next run at:  2023-04-06T10:34:58.000+02:00
+Sending to 'https://webhook.site/ce3065f5-2f0b-49d8-8856-330ae3c6e737': {"id":"my-id-2","type":"Something","modifiedAt":"2023-04-06T08:34:58.003Z"}
+Response: OK
+Next run at:  2023-04-06T10:35:00.000+02:00
 ...
 ```
