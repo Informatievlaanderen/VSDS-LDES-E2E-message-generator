@@ -1,3 +1,8 @@
-node_modules
-dist
+.github
 coverage
+data
+dist
+node_modules
+README.md
+CODEOWNERS
+TARGETURL
