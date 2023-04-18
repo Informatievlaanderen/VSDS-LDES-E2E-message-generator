@@ -1,0 +1,1 @@
+{ "id": "my-id-{{index}}", "type": "Something", "modifiedAt": "{{timestamp}}" }
