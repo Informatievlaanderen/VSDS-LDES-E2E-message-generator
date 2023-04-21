@@ -35,15 +35,11 @@ ARG CRON=
 ENV CRON=${CRON}
 ARG TEMPLATEFILE=
 ENV TEMPLATEFILE=${TEMPLATEFILE}
-ARG MAPPINGFILE=
-ENV MAPPINGFILE=${MAPPINGFILE}
 ARG TEMPLATE=
 ENV TEMPLATE=${TEMPLATE}
-ARG MAPPING=
-ENV MAPPING=${MAPPING}
 ARG MIMETYPE=
 ENV MIMETYPE=${MIMETYPE}
 ## set start command
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 USER node
-CMD ["sh", "-c", "node index.js --silent=${SILENT} --mimeType=\"${MIMETYPE}\" --targetUrl=${TARGETURL} --cron=\"${CRON}\" --mapping=\"${MAPPING}\" --mappingFile=${MAPPINGFILE} --template=\"${TEMPLATE}\" --templateFile=${TEMPLATEFILE}"]
+CMD ["sh", "-c", "node index.js --silent=${SILENT} --mimeType=\"${MIMETYPE}\" --targetUrl=${TARGETURL} --cron=\"${CRON}\" --template=\"${TEMPLATE}\" --templateFile=${TEMPLATEFILE}"]
