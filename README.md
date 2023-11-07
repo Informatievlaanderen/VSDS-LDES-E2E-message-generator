@@ -17,6 +17,7 @@ You can also pass the following arguments when running the container:
 * `SILENT=true` to display no logging to the console
 * `TARGETURL=<target-uri>` to POST the output to the target URI instead of to the console
 * `MIMETYPE=<mime-type>` to specify a mime-type when POSTing
+* `RANGE=<range>` allows to create the same range of values (1 to `range`) on each tick instead of an increasing index
 
 Alternatively, you can also pass the template as string instead of as file, use `TEMPLATE`.
 
@@ -47,6 +48,7 @@ The generator takes the following command line arguments:
 * `--cron` defines the time schedule, defaults to `* * * * * * ` (every second)
 * `--template='<content>'` allows to provide the template on the command line, no default (if not provided, you MUST provide `--templateFile`)
 * `--templateFile=<partial-or-full-pathname>` allows to provide the template in a file, no default (if not provided, you MUST provide `--template`)
+* `--range=<range>` allows to create a range of values (1 to `<range>`) on every tick instead of an increasing index
 
 The template or template file should simply contain a message with mustache variables (between `{{` and `}}`). E.g.:
 ```json
@@ -57,8 +59,8 @@ The template or template file should simply contain a message with mustache vari
 ```
 
 Currently the only allowed variables are:
-* `index`: increasing integer value, starting from 1
-* `timestamp`: current date and time formatted as [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) in UTC (e.g. `2007-04-05T14:30:00.000Z`)
+* `index`: on each tick, increasing integer value starting from 1 OR a range of values [1 .. N] given by `--range=N`
+* `timestamp`: on each tick, current date and time formatted as [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) in UTC, e.g. `2007-04-05T14:30:00.000Z` (all values in the range have the same timestamp)
 
 You can run the generator after building it, e.g.:
 

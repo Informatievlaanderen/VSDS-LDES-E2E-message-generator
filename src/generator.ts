@@ -18,4 +18,9 @@ export class Generator {
         var next = Mustache.render(this._template, data);
         return next;
     }
+
+    public createRange(range: number): any[] {
+        var timestamp = this.timestamp();
+        return Array.from(Array(range).keys()).map(index => Mustache.render(this._template, { index: index + 1, timestamp: timestamp }));
+    }
 }
