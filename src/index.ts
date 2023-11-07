@@ -14,22 +14,26 @@ let template: string = args['template'] || (args['templateFile'] && readFileSync
 if (!template) throw new Error('Missing template or templateFile');
 
 const generator: Generator = new Generator(template);
+const range = Number.parseInt(args['range'] || '0');
 
 const job = new CronJob(cron, async () => {
-    const body = generator.createNext();
-    const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
-    if (targetUrl) {
-        if (!mimeType) throw new Error('Missing mimeType');
-        if (!silent) console.debug(`Sending to '${targetUrl}':`, body);
-        const response = await fetch(targetUrl, {
-            method: 'post',
-            body: body,
-            headers: {'Content-Type': mimeType}
-        });
-        if (!silent) console.debug(`Response: ${response.statusText}`);
-    } else { // if no targetUrl specified, send to console
-        console.info(body);
-    }
+    const messages = range ? generator.createRange(range) : [generator.createNext()];
+    for await (const body of messages) {
+        const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
+        if (targetUrl) {
+            if (!mimeType) throw new Error('Missing mimeType');
+            if (!silent) console.debug(`Sending to '${targetUrl}':`, body);
+            const response = await fetch(targetUrl, {
+                method: 'post',
+                body: body,
+                headers: {'Content-Type': mimeType}
+            });
+            if (!silent) console.debug(`Response: ${response.statusText}`);
+        } else { // if no targetUrl specified, send to console
+            console.info(body);
+        }
+    };
+
     if (!silent) console.debug('Next run at: ', job.nextDate().toString());
 });
 
