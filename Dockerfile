@@ -41,7 +41,11 @@ ARG MIMETYPE=
 ENV MIMETYPE=${MIMETYPE}
 ARG RANGE=
 ENV RANGE=${RANGE}
+ARG MAX_RETRIES=5
+ENV MAX_RETRIES=${MAX_RETRIES}
+ARG RETRY_TIMEOUT=10
+ENV RETRY_TIMEOUT=${RETRY_TIMEOUT}
 ## set start command
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 USER node
-CMD ["sh", "-c", "node index.js --silent=${SILENT} --range=${RANGE} --mimeType=\"${MIMETYPE}\" --targetUrl=${TARGETURL} --cron=\"${CRON}\" --template=\"${TEMPLATE}\" --templateFile=${TEMPLATEFILE}"]
+CMD ["sh", "-c", "node index.js --silent=${SILENT} --retryTimeout=${RETRY_TIMEOUT} --maxRFetries=${MAX_RETRIES} --range=${RANGE} --mimeType=\"${MIMETYPE}\" --targetUrl=${TARGETURL} --cron=\"${CRON}\" --template=\"${TEMPLATE}\" --templateFile=${TEMPLATEFILE}"]

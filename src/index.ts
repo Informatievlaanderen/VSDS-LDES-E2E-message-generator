@@ -10,28 +10,51 @@ if (!silent) console.debug("Arguments: ", args);
 
 const cron = args['cron'] || '* * * * * *';
 const mimeType = args['mimeType'];
+const maxRetries = Number.parseInt(args['maxRetries'] || '5');
+const retryTimeout = Number.parseInt(args['retryTimeout'] || '10');
 let template: string = args['template'] || (args['templateFile'] && readFileSync(args['templateFile'], {encoding: 'utf8'}));
 if (!template) throw new Error('Missing template or templateFile');
 
 const generator: Generator = new Generator(template);
 const range = Number.parseInt(args['range'] || '0');
+const nonFatalHttpCodes : number[] = [429, 500, 503];
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+let messageCount = 0;
 
 const job = new CronJob(cron, async () => {
     const timestamp = new Date().toISOString();
     const messages = range ? generator.createRange(range) : [generator.createNext()];
+    const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
     for await (const body of messages) {
-        const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
+        ++messageCount;
+
         if (targetUrl) {
             if (!mimeType) throw new Error('Missing mimeType');
-
-            if (!silent) console.debug(`Sending to '${targetUrl}':`, body);
-            const response = await fetch(targetUrl, {
-                method: 'post',
-                body: body,
-                headers: {'Content-Type': mimeType}
-            });
-            if (!silent) console.debug(`Response: ${response.statusText}`);
-            if (silent) console.info(`[${timestamp}] POST ${targetUrl} ${response.status}`);
+            let retry = false;
+            let retries = 0;
+            do {
+                try {
+                    if (!silent) {
+                        const msg = retry ? `Retrying (${retries} of ${maxRetries}) send` : "Sending";
+                        console.debug(`${msg} message ${messageCount} to ${targetUrl}`, body);
+                    }
+                    const response = await fetch(targetUrl, {
+                        method: 'post',
+                        body: body,
+                        headers: {'Content-Type': mimeType}
+                    });
+                    if (!silent) console.debug(`Response: ${response.statusText}`);
+                    if (silent) {
+                        const msg = retry ? ` (retry ${retries} of ${maxRetries})` : ' ';
+                        console.info(`[${timestamp}] POST ${targetUrl} (msg: ${messageCount}) ${response.status}${msg}`);
+                    }
+                    retry = nonFatalHttpCodes.includes(response.status);
+                } catch (error) {
+                    const msg = error instanceof Error ? `${error.name}: ${error.message}, reason: ${error.cause}` : String(error);
+                    console.error(`ERROR: cannot POST to ${targetUrl} because: ${msg}`);
+                    retry = true;
+                }
+            } while (retry && (++retries <= maxRetries) && (await sleep(retryTimeout), true));
         } else { // if no targetUrl specified, send to console
             console.info(body);
         }

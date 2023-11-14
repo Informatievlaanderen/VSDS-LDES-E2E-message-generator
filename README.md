@@ -49,6 +49,8 @@ The generator takes the following command line arguments:
 * `--template='<content>'` allows to provide the template on the command line, no default (if not provided, you MUST provide `--templateFile`)
 * `--templateFile=<partial-or-full-pathname>` allows to provide the template in a file, no default (if not provided, you MUST provide `--template`)
 * `--range=<range>` allows to create a range of values (1 to `<range>`) on every tick instead of an increasing index
+* `--maxRetries=<number>` allows to retry some (possibly retryable) HTTP status codes (429, 500 & 503) a maximum number of times
+* `--retryTimeout=<ms>` the amount of time (in milliseconds) to wait between retrying to send the message again
 
 The template or template file should simply contain a message with mustache variables (between `{{` and `}}`). E.g.:
 ```json
