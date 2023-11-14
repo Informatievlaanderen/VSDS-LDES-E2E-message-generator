@@ -25,28 +25,32 @@ const job = new CronJob(cron, async () => {
     const timestamp = new Date().toISOString();
     const messages = range ? generator.createRange(range) : [generator.createNext()];
     const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
+    if (targetUrl && !mimeType) throw new Error('Missing mimeType');
+
     for await (const body of messages) {
-        ++messageCount;
+        messageCount++;
 
         if (targetUrl) {
-            if (!mimeType) throw new Error('Missing mimeType');
             let retry = false;
             let retries = 0;
             do {
                 try {
                     if (!silent) {
-                        const msg = retry ? `Retrying (${retries} of ${maxRetries}) send` : "Sending";
-                        console.debug(`${msg} message ${messageCount} to ${targetUrl}`, body);
+                        const prefix = retry ? `Retrying (${retries} of ${maxRetries}) send` : "Sending";
+                        const msg = `${prefix} message ${messageCount} to ${targetUrl}`;
+                        console.debug(msg, body);
                     }
                     const response = await fetch(targetUrl, {
                         method: 'post',
                         body: body,
                         headers: {'Content-Type': mimeType}
                     });
-                    if (!silent) console.debug(`Response: ${response.statusText}`);
                     if (silent) {
-                        const msg = retry ? ` (retry ${retries} of ${maxRetries})` : ' ';
-                        console.info(`[${timestamp}] POST ${targetUrl} (msg: ${messageCount}) ${response.status}${msg}`);
+                        const postfix = retry ? ` (retry ${retries} of ${maxRetries})` : ' ';
+                        const msg = `[${timestamp}] POST ${targetUrl} (msg: ${messageCount}) ${response.status}${postfix}`;
+                        console.info(msg);
+                    } else {
+                        console.debug(`Response: ${response.statusText}`);
                     }
                     retry = nonFatalHttpCodes.includes(response.status);
                 } catch (error) {
