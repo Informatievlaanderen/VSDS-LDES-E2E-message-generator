@@ -13,13 +13,13 @@ export class Generator {
         return new Date().toISOString();
     }
 
-    public createNext(): any {
+    public createNext(): string {
         var data = { index: this.index(), timestamp: this.timestamp() };
         var next = Mustache.render(this._template, data);
         return next;
     }
 
-    public createRange(range: number): any[] {
+    public createRange(range: number): string[] {
         var timestamp = this.timestamp();
         return Array.from(Array(range).keys()).map(index => Mustache.render(this._template, { index: index + 1, timestamp: timestamp }));
     }

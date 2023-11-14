@@ -17,11 +17,13 @@ const generator: Generator = new Generator(template);
 const range = Number.parseInt(args['range'] || '0');
 
 const job = new CronJob(cron, async () => {
+    const timestamp = new Date().toISOString();
     const messages = range ? generator.createRange(range) : [generator.createNext()];
     for await (const body of messages) {
         const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
         if (targetUrl) {
             if (!mimeType) throw new Error('Missing mimeType');
+
             if (!silent) console.debug(`Sending to '${targetUrl}':`, body);
             const response = await fetch(targetUrl, {
                 method: 'post',
@@ -29,6 +31,7 @@ const job = new CronJob(cron, async () => {
                 headers: {'Content-Type': mimeType}
             });
             if (!silent) console.debug(`Response: ${response.statusText}`);
+            if (silent) console.info(`[${timestamp}] POST ${targetUrl} ${response.status}`);
         } else { // if no targetUrl specified, send to console
             console.info(body);
         }
