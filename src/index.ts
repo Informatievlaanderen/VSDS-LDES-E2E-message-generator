@@ -37,8 +37,8 @@ const job = new CronJob(cron, async () => {
                 try {
                     if (!silent) {
                         const prefix = retry ? `Retrying (${retries} of ${maxRetries}) send` : "Sending";
-                        const msg = `${prefix} message ${messageCount} to ${targetUrl}`;
-                        console.debug(msg, body);
+                        const msg = `${prefix} message ${messageCount} to ${targetUrl} (size: ${body.length})`;
+                        console.debug(msg);
                     }
                     const response = await fetch(targetUrl, {
                         method: 'post',
