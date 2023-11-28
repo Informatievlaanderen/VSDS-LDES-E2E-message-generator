@@ -6,7 +6,7 @@ import fetch from 'node-fetch';
 
 const args = minimist(process.argv.slice(2));
 const silent: boolean = (/true/i).test(args['silent']);
-if (!silent) console.debug("Arguments: ", args);
+if (!silent) console.warn("Arguments: ", args);
 
 const cron = args['cron'] || '* * * * * *';
 const mimeType = args['mimeType'];
@@ -27,6 +27,7 @@ const job = new CronJob(cron, async () => {
     const targetUrl = args['targetUrl'] || (existsSync('./TARGETURL') && readFileSync('./TARGETURL', 'utf-8').trimEnd());
     if (targetUrl && !mimeType) throw new Error('Missing mimeType');
 
+    const startTime = new Date().valueOf();
     for await (const body of messages) {
         messageCount++;
 
@@ -35,23 +36,17 @@ const job = new CronJob(cron, async () => {
             let retries = 0;
             do {
                 try {
-                    if (!silent) {
-                        const prefix = retry ? `Retrying (${retries} of ${maxRetries}) send` : "Sending";
-                        const msg = `${prefix} message ${messageCount} to ${targetUrl} (size: ${body.length})`;
-                        console.debug(msg);
+                    if (retry) {
+                        const msg = `Retrying (${retries} of ${maxRetries}) send message ${messageCount} to ${targetUrl}`;
+                        console.warn(msg);
                     }
+
                     const response = await fetch(targetUrl, {
                         method: 'post',
                         body: body,
                         headers: {'Content-Type': mimeType}
                     });
-                    if (silent) {
-                        const postfix = retry ? ` (retry ${retries} of ${maxRetries})` : ' ';
-                        const msg = `[${timestamp}] POST ${targetUrl} (msg: ${messageCount}) ${response.status}${postfix}`;
-                        console.info(msg);
-                    } else {
-                        console.debug(`Response: ${response.statusText}`);
-                    }
+                    
                     retry = nonFatalHttpCodes.includes(response.status);
                 } catch (error) {
                     const msg = error instanceof Error ? `${error.name}: ${error.message}, reason: ${error.cause}` : String(error);
@@ -64,8 +59,13 @@ const job = new CronJob(cron, async () => {
         }
     };
 
-    if (!silent) console.debug('Next run at: ', job.nextDate().toString());
+    if (!silent) {
+        const endTime = new Date().valueOf();
+        const deltaMillis = endTime - startTime;
+        const msg = `[${timestamp}] sent ${messages.length} messages to ${targetUrl} in ${deltaMillis} milliseconds.`;
+        console.warn(msg);
+    }
 });
 
-if (!silent) console.debug('Runs at: ', cron);
+if (!silent) console.warn('Runs at: ', cron);
 job.start();
